@@ -1,229 +1,119 @@
-import { Link } from 'react-router-dom'
-import { ProductList } from '../components/product/ProductList'
-import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
-import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
-import { Layout, SectionLayout } from '../components/ui/Layout'
+import { lazy, Suspense, useCallback } from 'react'
+import { ErrorBoundary } from '../components/ui/ErrorBoundary'
+import { HeroSection } from '../components/home/HeroSection'
+import { Layout } from '../components/ui/Layout'
+import { useScrollToElement } from '../hooks/useScrollToElement'
+import { NAVBAR_HEIGHT } from '../types/home'
 
-// Hero Section Component
-const HeroSection = () => {
-  const scrollToProducts = () => {
-    const productsSection = document.getElementById('products-section')
-    if (productsSection) {
-      // Account for sticky navbar height (64px = h-16)
-      const navbarHeight = 64
-      const elementPosition = productsSection.offsetTop - navbarHeight
-      
-      window.scrollTo({
-        top: elementPosition,
-        behavior: 'smooth'
-      })
-    }
-  }
+// Lazy load heavy components for better performance
+const TestimonialsSection = lazy(() => 
+  import('../components/home/TestimonialsSection').then(module => ({
+    default: module.TestimonialsSection
+  }))
+)
 
-  return (
-  <section className="relative bg-white overflow-hidden pb-4">
-    <Layout className="relative py-6 sm:py-8">
-      <div className="text-center">
-        <div className="flex items-center justify-center space-x-3 mb-4">
-          <span className="text-3xl sm:text-4xl">👋</span>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-pink-600 tracking-tight">
-            Hi, I'm Mikela!
-          </h1>
-        </div>
-        <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-6 leading-relaxed">
-          I'm a 13-year-old aspiring entrepreneur passionate about helping everyone find the perfect items! 
-          Welcome to my little store where I curate adorable and quality products just for you.
-        </p>
-        <div className="flex flex-row gap-3 justify-center items-center">
-          <button
-            onClick={scrollToProducts}
-            className="inline-flex items-center px-6 py-3 bg-pink-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 text-base"
-          >
-            <ShoppingBagIcon className="w-4 h-4 mr-2" />
-            Shop Now
-          </button>
-          <Link
-            to="/orders"
-            className="inline-flex items-center px-6 py-3 border-2 border-pink-600 text-pink-600 font-semibold rounded-full hover:bg-pink-50 transition-all duration-200 text-base"
-          >
-            <HeartIcon className="w-4 h-4 mr-2" />
-            My Orders
-          </Link>
+const ProductsSection = lazy(() => 
+  import('../components/home/ProductsSection').then(module => ({
+    default: module.ProductsSection
+  }))
+)
+
+const Footer = lazy(() => 
+  import('../components/home/Footer').then(module => ({
+    default: module.Footer
+  }))
+)
+
+/**
+ * AnimatedSeparator - Lightweight separator component
+ * Extracted for better maintainability and potential reuse
+ */
+const AnimatedSeparator = () => (
+  <div className="relative py-1 bg-white">
+    <Layout>
+      <div className="flex justify-center">
+        <div className="relative">
+          <div className="w-0 h-px bg-pink-300 animate-expand-line" />
         </div>
       </div>
     </Layout>
-  </section>
-  )
-}
+  </div>
+)
 
+/**
+ * LoadingFallback - Reusable loading component for lazy-loaded sections
+ */
+const LoadingFallback = ({ message = 'Loading...' }: { message?: string }) => (
+  <div className="flex justify-center items-center py-16">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600" />
+    <span className="ml-3 text-gray-600">{message}</span>
+  </div>
+)
 
-
-// Testimonials Section Component
-const TestimonialsSection = () => {
-  const testimonials = [
-    {
-      name: 'Sarah M.',
-      role: 'Student',
-      content: 'Love the quality of the school supplies! The pens write so smoothly and the notebooks are adorable.',
-      rating: 5,
-      avatar: '👩‍🎓'
-    },
-    {
-      name: 'Mike R.',
-      role: 'Parent',
-      content: 'Great prices and fast delivery. My daughter loves all the cute accessories she got from here.',
-      rating: 5,
-      avatar: '👨‍👧'
-    },
-    {
-      name: 'Emma L.',
-      role: 'Artist',
-      content: 'The art supplies are amazing quality! Perfect for my creative projects. Highly recommend!',
-      rating: 5,
-      avatar: '👩‍🎨'
-    }
-  ]
-
-  return (
-    <section className="py-16 bg-white">
-      <Layout>
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Don't just take our word for it - hear from our happy customers!
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
-            <div key={index} className="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center mb-4">
-                <div className="text-3xl mr-3">{testimonial.avatar}</div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
-                  <p className="text-sm text-gray-600">{testimonial.role}</p>
-                </div>
-              </div>
-              <div className="flex items-center mb-3">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <StarIconSolid key={i} className="w-4 h-4 text-yellow-400" />
-                ))}
-              </div>
-              <p className="text-gray-700 italic">"{testimonial.content}"</p>
-            </div>
-          ))}
-        </div>
-      </Layout>
-    </section>
-  )
-}
-
-
-
-// Footer Component
-const Footer = () => (
-  <footer className="bg-gray-900 text-white">
-    <Layout className="py-12">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* Brand Section */}
-        <div className="col-span-1 md:col-span-2">
-          <div className="flex items-center space-x-3 mb-4">
-            <span className="text-3xl">🛍️</span>
-            <h3 className="text-2xl font-bold text-pink-400">MKLA Creations</h3>
-          </div>
-          <p className="text-gray-300 mb-4 max-w-md">
-            Your one-stop shop for adorable school supplies and fun finds. 
-            Making learning and creating more enjoyable for everyone!
-          </p>
-          <div className="flex space-x-4">
-            <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
-              <span className="sr-only">Facebook</span>
-              📘
-            </a>
-            <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
-              <span className="sr-only">Instagram</span>
-              📷
-            </a>
-            <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
-              <span className="sr-only">Twitter</span>
-              🐦
-            </a>
-          </div>
-        </div>
-
-        {/* Quick Links */}
-        <div>
-          <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-          <ul className="space-y-2">
-            <li><Link to="/" className="text-gray-300 hover:text-pink-400 transition-colors">Home</Link></li>
-            <li><Link to="/orders" className="text-gray-300 hover:text-pink-400 transition-colors">My Orders</Link></li>
-            <li><Link to="/login" className="text-gray-300 hover:text-pink-400 transition-colors">Login</Link></li>
-            <li><Link to="/register" className="text-gray-300 hover:text-pink-400 transition-colors">Register</Link></li>
-          </ul>
-        </div>
-
-        {/* Contact Info */}
-        <div>
-          <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
-          <ul className="space-y-2 text-gray-300">
-            <li>📧 support@mklacreations.com</li>
-            <li>📱 +63 926 667 6316</li>
-            <li>📍 South Fundidor, Molo, Iloilo</li>
-            <li>🕒 Mon-Fri: 9AM-6PM</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Bottom Bar */}
-      <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-        <p className="text-gray-400 text-sm">
-          © {new Date().getFullYear()} MKLA Creations. All rights reserved.
-        </p>
-        <div className="flex space-x-6 mt-4 md:mt-0">
-          <a href="#" className="text-gray-400 hover:text-pink-400 text-sm transition-colors">Privacy Policy</a>
-          <a href="#" className="text-gray-400 hover:text-pink-400 text-sm transition-colors">Terms of Service</a>
-          <a href="#" className="text-gray-400 hover:text-pink-400 text-sm transition-colors">Shipping Info</a>
-        </div>
-              </div>
-      </Layout>
-    </footer>
-  )
-
-// Main Home Component
+/**
+ * Home - Main landing page component
+ * 
+ * Architecture:
+ * - Clean separation of concerns with atomic components
+ * - Performance optimized with lazy loading and memoization
+ * - Proper error boundaries for graceful error handling
+ * - Custom hooks for reusable logic
+ * - TypeScript for type safety
+ * - Accessibility improvements
+ */
 export const Home = () => {
+  const { scrollToElement } = useScrollToElement()
+
+  const handleScrollToProducts = useCallback(() => {
+    scrollToElement({
+      targetId: 'products-section',
+      offset: NAVBAR_HEIGHT,
+      behavior: 'smooth'
+    })
+  }, [scrollToElement])
+
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <HeroSection />
+    <ErrorBoundary>
+      <div className="min-h-screen">
+        {/* Hero Section - Above the fold, loaded immediately */}
+        <HeroSection onScrollToProducts={handleScrollToProducts} />
 
-      {/* Animated Separator */}
-      <div className="relative py-1 bg-white">
-        <Layout>
-          <div className="flex justify-center">
-                          <div className="relative">
-                <div className="w-0 h-px bg-pink-300 animate-expand-line"></div>
-              </div>
-            </div>
-          </Layout>
-        </div>
+        {/* Animated Separator */}
+        <AnimatedSeparator />
 
-      {/* Products Section */}
-      <section id="products-section" className="pt-8 pb-12 bg-white">
-        <Layout>
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Featured Products</h2>
-            <p className="text-sm text-gray-600 max-w-lg mx-auto">
-              I carefully select each item myself! From trending favorites to hidden gems, discover products that make learning and creating more fun.
-            </p>
+        {/* Products Section - Lazy loaded with Suspense */}
+        <ErrorBoundary fallback={
+          <div className="py-16 text-center">
+            <p className="text-red-600">Unable to load products. Please try refreshing the page.</p>
           </div>
-          <ProductList />
-        </Layout>
-      </section>
+        }>
+          <Suspense fallback={<LoadingFallback message="Loading products..." />}>
+            <ProductsSection />
+          </Suspense>
+        </ErrorBoundary>
 
-      {/* Testimonials Section */}
-      <TestimonialsSection />
+        {/* Testimonials Section - Lazy loaded */}
+        <ErrorBoundary fallback={
+          <div className="py-16 text-center">
+            <p className="text-red-600">Unable to load testimonials.</p>
+          </div>
+        }>
+          <Suspense fallback={<LoadingFallback message="Loading testimonials..." />}>
+            <TestimonialsSection />
+          </Suspense>
+        </ErrorBoundary>
 
-      {/* Footer */}
-      <Footer />
-    </div>
+        {/* Footer - Lazy loaded as it's below the fold */}
+        <ErrorBoundary fallback={
+          <div className="py-8 bg-gray-900 text-white text-center">
+            <p>Unable to load footer content.</p>
+          </div>
+        }>
+          <Suspense fallback={<LoadingFallback message="Loading footer..." />}>
+            <Footer />
+          </Suspense>
+        </ErrorBoundary>
+      </div>
+    </ErrorBoundary>
   )
 } 
