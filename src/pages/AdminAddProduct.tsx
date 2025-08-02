@@ -1,45 +1,14 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 import { ProductForm } from '../components/admin/ProductForm'
 import { supabase } from '../lib/supabase'
 
 export const AdminAddProduct = () => {
-  const { user, loading: authLoading } = useAuth()
+  // All hooks must be at the top level
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
-
-  // Defense-in-depth: Additional security check
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user || user.role !== 'admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow max-w-md w-full text-center">
-          <div className="text-red-500 text-6xl mb-4">🚫</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 mb-4">You don't have permission to access this page.</p>
-          <Link
-            to="/"
-            className="inline-block px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700 transition"
-          >
-            Go Home
-          </Link>
-        </div>
-      </div>
-    )
-  }
 
   const handleCreate = async (form: {
     name: string

@@ -310,8 +310,8 @@ export const Checkout = () => {
                 GCash Payment Proof *
               </label>
               <div className="space-y-4">
-                {/* File Input */}
-                <div className="flex items-center space-x-4">
+                {/* Enhanced File Input */}
+                <div className="relative">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -320,26 +320,74 @@ export const Checkout = () => {
                     className="hidden"
                     required
                   />
+                  
+                  {/* Custom File Upload Area */}
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                    className="w-full border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-pink-400 hover:bg-pink-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400"
                   >
-                    Choose File
+                    <div className="text-center">
+                      {proof ? (
+                        <div className="flex items-center justify-center space-x-3 animate-fade-in">
+                          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm font-medium text-gray-900">{proof.name}</p>
+                            <p className="text-xs text-gray-500">Click to change file</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 animate-pulse-subtle">
+                          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Click to upload payment proof</p>
+                            <p className="text-xs text-gray-500 mt-1">PNG, JPG, JPEG up to 10MB</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </button>
-                  <span className="text-sm text-gray-500">
-                    {proof ? proof.name : 'No file chosen'}
-                  </span>
+                  
+                  {/* File Type Indicator */}
+                  <div className="mt-3 flex items-center justify-center">
+                    <span className="text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
+                      📱 Screenshot of GCash payment
+                    </span>
+                  </div>
                 </div>
 
                 {/* Preview */}
                 {proofPreview && (
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <img
-                      src={proofPreview}
-                      alt="Payment proof preview"
-                      className="max-w-full h-auto max-h-64 mx-auto rounded"
-                    />
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 animate-fade-in">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-medium text-gray-900">Preview</h4>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProof(null)
+                          setProofPreview(null)
+                          if (fileInputRef.current) fileInputRef.current.value = ''
+                        }}
+                        className="text-xs text-red-600 hover:text-red-800 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <img
+                        src={proofPreview}
+                        alt="Payment proof preview"
+                        className="max-w-full h-auto max-h-64 mx-auto rounded border border-gray-200 shadow-sm"
+                      />
+                    </div>
                   </div>
                 )}
               </div>

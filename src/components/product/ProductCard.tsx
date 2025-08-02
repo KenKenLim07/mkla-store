@@ -48,7 +48,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <article
-      className="bg-white rounded-md shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col overflow-hidden group focus-within:ring-2 focus-within:ring-pink-400"
+      className="bg-white border border-gray-200 rounded-md shadow-sm hover:border-pink-200 hover:shadow-md transition-all duration-200 group focus-within:ring-2 focus-within:ring-pink-400 hover:scale-[1.01] product-card-hover"
       tabIndex={0}
       aria-label={`Product: ${product.name}`}
     >
@@ -63,7 +63,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       </header>
       <section className="p-1 flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-1 gap-2 min-h-[1.5em]">
-          <h3 className="font-semibold text-sm text-gray-900 truncate" title={product.name}>
+          <h3 className="font-semibold text-sm text-gray-900 group-hover:text-pink-600 transition-colors truncate" title={product.name}>
             {product.name}
           </h3>
           <span

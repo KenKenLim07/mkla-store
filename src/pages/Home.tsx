@@ -9,7 +9,14 @@ const HeroSection = () => {
   const scrollToProducts = () => {
     const productsSection = document.getElementById('products-section')
     if (productsSection) {
-      productsSection.scrollIntoView({ behavior: 'smooth' })
+      // Account for sticky navbar height (64px = h-16)
+      const navbarHeight = 64
+      const elementPosition = productsSection.offsetTop - navbarHeight
+      
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth'
+      })
     }
   }
 
@@ -121,7 +128,7 @@ const Footer = () => (
         <div className="col-span-1 md:col-span-2">
           <div className="flex items-center space-x-3 mb-4">
             <span className="text-3xl">🛍️</span>
-            <h3 className="text-2xl font-bold text-pink-400">Mikela Store</h3>
+            <h3 className="text-2xl font-bold text-pink-400">MKLA Creations</h3>
           </div>
           <p className="text-gray-300 mb-4 max-w-md">
             Your one-stop shop for adorable school supplies and fun finds. 
@@ -158,9 +165,9 @@ const Footer = () => (
         <div>
           <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
           <ul className="space-y-2 text-gray-300">
-            <li>📧 support@mikelastore.com</li>
-            <li>📱 +63 912 345 6789</li>
-            <li>📍 Manila, Philippines</li>
+            <li>📧 support@mklacreations.com</li>
+            <li>📱 +63 926 667 6316</li>
+            <li>📍 South Fundidor, Molo, Iloilo</li>
             <li>🕒 Mon-Fri: 9AM-6PM</li>
           </ul>
         </div>
@@ -169,7 +176,7 @@ const Footer = () => (
       {/* Bottom Bar */}
       <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
         <p className="text-gray-400 text-sm">
-          © 2024 Mikela Store. All rights reserved.
+          © {new Date().getFullYear()} MKLA Creations. All rights reserved.
         </p>
         <div className="flex space-x-6 mt-4 md:mt-0">
           <a href="#" className="text-gray-400 hover:text-pink-400 text-sm transition-colors">Privacy Policy</a>
@@ -200,7 +207,7 @@ export const Home = () => {
         </div>
 
       {/* Products Section */}
-      <section id="products-section" className="pt-4 pb-12 bg-white">
+      <section id="products-section" className="pt-8 pb-12 bg-white">
         <Layout>
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Featured Products</h2>

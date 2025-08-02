@@ -1,12 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useOrders } from '../hooks/useOrders'
 import { useProducts } from '../hooks/useProducts'
-import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
-import React from 'react'
 import { Modal } from '../components/ui/Modal'
-import { useRef } from 'react'
 
 // Toast system (minimal, for now)
 const Toast = ({ message, onClose }: { message: string, onClose: () => void }) => (
@@ -19,7 +16,7 @@ const Toast = ({ message, onClose }: { message: string, onClose: () => void }) =
 const statusFlow = ['pending', 'confirmed', 'completed', 'denied']
 
 export const AdminOrders = () => {
-  const { user, loading: authLoading } = useAuth()
+  // All hooks must be at the top level
   const { orders, loading, error, refetch } = useOrders()
   const { products } = useProducts()
   const [updatingId, setUpdatingId] = useState<string | null>(null)
@@ -29,40 +26,9 @@ export const AdminOrders = () => {
   const [denialReason, setDenialReason] = useState('')
   const [pendingDenyOrder, setPendingDenyOrder] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const denialReasonRef = useRef('')
-
-  // Defense-in-depth: Additional security check
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user || user.role !== 'admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow max-w-md w-full text-center">
-          <div className="text-red-500 text-6xl mb-4">🚫</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 mb-4">You don't have permission to access this page.</p>
-          <Link
-            to="/"
-            className="inline-block px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700 transition"
-          >
-            Go Home
-          </Link>
-        </div>
-      </div>
-    )
-  }
 
   // Update local orders when orders prop changes
-  React.useEffect(() => {
+  useEffect(() => {
     setLocalOrders(orders)
   }, [orders])
 

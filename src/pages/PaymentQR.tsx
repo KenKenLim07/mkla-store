@@ -152,19 +152,36 @@ export const PaymentQR = () => {
           <div className="text-center mb-8">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">Scan QR Code</h3>
             <div className="flex justify-center mb-6">
-              <div className="bg-gray-100 rounded-lg p-8 border-2 border-dashed border-gray-300">
-                {/* Replace with your actual GCash QR code image */}
-                <div className="w-48 h-48 bg-white rounded-lg flex items-center justify-center border border-gray-200">
-                  <div className="text-center">
+              <div className="bg-gray-100 rounded-lg p-4 border-2 border-dashed border-gray-300">
+                {/* GCash QR Code Image - Much larger for easy scanning */}
+                <div className="w-80 h-80 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] bg-white rounded-lg flex items-center justify-center border border-gray-200 overflow-hidden shadow-sm">
+                  {/* Replace the src with your actual QR code image path */}
+                  <img 
+                    src="/cash-qr-code.png" 
+                    alt="GCash QR Code"
+                    className="w-full h-full object-contain p-4"
+                    onError={(e) => {
+                      // Fallback if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  {/* Fallback content if image doesn't load */}
+                  <div className="text-center hidden">
                     <div className="text-6xl mb-2">📱</div>
                     <p className="text-sm text-gray-500">GCash QR Code</p>
                     <p className="text-xs text-gray-400 mt-1">Amount: ₱{product.price.toFixed(2)}</p>
+                    <p className="text-xs text-red-500 mt-2">Please add your QR code image</p>
                   </div>
                 </div>
               </div>
             </div>
             <p className="text-sm text-gray-500">
               Point your GCash camera at this QR code
+            </p>
+            <p className="text-xs text-gray-400 mt-2">
+              Make sure your phone's camera is focused on the QR code
             </p>
           </div>
 
