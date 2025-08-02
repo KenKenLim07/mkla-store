@@ -31,7 +31,7 @@ export const ProductList = () => {
     return (
       <section>
         <Layout>
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 items-stretch">
             {Array.from({ length: 8 }).map((_, index) => (
               <ProductSkeleton key={index} />
             ))}
@@ -63,7 +63,7 @@ export const ProductList = () => {
   return (
     <section>
       <Layout>
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 items-stretch">
           {products.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <div className="text-gray-400 text-6xl mb-4">🛍️</div>

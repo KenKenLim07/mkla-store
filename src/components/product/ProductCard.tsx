@@ -48,11 +48,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <article
-      className="bg-white border border-gray-200 rounded-md shadow-sm hover:border-pink-200 hover:shadow-md transition-all duration-200 group focus-within:ring-2 focus-within:ring-pink-400 hover:scale-[1.01] product-card-hover"
+      className="bg-white border border-gray-200 rounded-md shadow-sm hover:border-pink-200 hover:shadow-md transition-all duration-200 group focus-within:ring-2 focus-within:ring-pink-400 hover:scale-[1.01] product-card-hover h-full flex flex-col"
       tabIndex={0}
       aria-label={`Product: ${product.name}`}
     >
-      <header>
+      <header className="flex-shrink-0">
         {product.image_url ? (
           <ImageWithSkeleton src={product.image_url} alt={product.name} />
         ) : (
@@ -61,23 +61,29 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         )}
       </header>
-      <section className="p-1 flex-1 flex flex-col">
-        <div className="flex items-center justify-between mb-1 gap-2 min-h-[1.5em]">
-          <h3 className="font-semibold text-sm text-gray-900 group-hover:text-pink-600 transition-colors truncate" title={product.name}>
+      <section className="p-1 flex-1 flex flex-col min-h-0">
+        <div className="flex items-center justify-between mb-1 gap-2 h-6">
+          <h3 className="font-semibold text-sm text-gray-900 group-hover:text-pink-600 transition-colors truncate flex-1" title={product.name}>
             {product.name}
           </h3>
           <span
-            className={`text-xs font-medium transition-colors duration-200 whitespace-nowrap ${isOutOfStock ? 'text-red-500' : 'text-gray-500 group-hover:text-pink-600'}`}
+            className={`text-xs font-medium transition-colors duration-200 whitespace-nowrap flex-shrink-0 ${isOutOfStock ? 'text-red-500' : 'text-gray-500 group-hover:text-pink-600'}`}
             title={isOutOfStock ? 'Out of Stock' : `Stocks: ${product.stocks}`}
             aria-live="polite"
           >
             {isOutOfStock ? 'Out of Stock' : `Stocks: ${product.stocks}`}
           </span>
         </div>
-        {product.description && (
-          <p className="text-gray-500 text-xs mb-1 line-clamp-2 leading-snug">{product.description}</p>
-        )}
-        <div className="mt-auto flex items-center justify-between pt-1">
+        <div className="flex-1 min-h-0">
+          {product.description ? (
+            <p className="text-gray-500 text-xs mb-1 leading-snug line-clamp-2 h-8 overflow-hidden" title={product.description}>
+              {product.description}
+            </p>
+          ) : (
+            <div className="h-8" />
+          )}
+        </div>
+        <div className="flex items-center justify-between pt-1 mt-auto">
           <span className="text-pink-600 font-bold text-sm transition-colors duration-200 group-hover:text-pink-700">
             ₱{product.price.toFixed(2)}
           </span>
