@@ -2,25 +2,56 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Order } from '../types/db'
 
+// Extended Order type with product data
+export interface OrderWithProduct extends Order {
+  user_id: string
+  product: {
+    id: string
+    name: string
+    description?: string
+    price: number
+    image_url?: string
+    stocks: number
+  } | null
+}
+
 export const useOrders = () => {
-  const [orders, setOrders] = useState<Order[]>([])
+  const [orders, setOrders] = useState<OrderWithProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchOrders = async () => {
     setLoading(true)
     setError(null)
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) {
-      setError(error.message)
+    
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          product:products(
+            id,
+            name,
+            description,
+            price,
+            image_url,
+            stocks
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        setError(error.message)
+        setOrders([])
+      } else {
+        setOrders(data || [])
+      }
+    } catch (err) {
+      setError('Failed to fetch orders')
       setOrders([])
-    } else {
-      setOrders(data || [])
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   useEffect(() => {

@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { ProductForm } from '../components/admin/ProductForm'
 import { supabase } from '../lib/supabase'
+import { ArrowLeftIcon, PlusIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 
 export const AdminAddProduct = () => {
-  // All hooks must be at the top level
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
   const navigate = useNavigate()
 
   const handleCreate = async (form: {
@@ -28,17 +29,17 @@ export const AdminAddProduct = () => {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`
       const filePath = `products/${fileName}`
       
-      const { data, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('product-images')
         .upload(filePath, form.image, {
           cacheControl: '3600',
           upsert: false,
           onUploadProgress: (evt: any) => {
             if (evt.total) {
-              setProgress(Math.round((evt.loaded / evt.total) * 100))
+              setProgress(Math.round((evt.loaded / evt.total) * 50)) // Image upload is 50% of progress
             }
           }
-        } as any) // onUploadProgress is not in types yet
+        } as any)
       
       if (uploadError) {
         setError('Failed to upload image: ' + uploadError.message)
@@ -46,6 +47,7 @@ export const AdminAddProduct = () => {
         return
       }
       image_url = supabase.storage.from('product-images').getPublicUrl(filePath).data.publicUrl
+      setProgress(50)
     }
 
     // 2. Insert product into DB
@@ -54,7 +56,7 @@ export const AdminAddProduct = () => {
       description: form.description,
       price: Number(form.price),
       image_url,
-      stocks: form.stocks ?? 0 // default to 0 if undefined
+      stocks: form.stocks ?? 0
     })
 
     if (insertError) {
@@ -64,37 +66,192 @@ export const AdminAddProduct = () => {
     }
 
     setProgress(100)
+    setSuccess(true)
+    
     setTimeout(() => {
       setLoading(false)
       navigate('/admin/products')
-    }, 800)
+    }, 1500)
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-pink-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircleIcon className="w-8 h-8 text-pink-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Product Created!</h2>
+          <p className="text-gray-600 mb-6">Your new product has been successfully added to the store.</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate('/admin/products')}
+              className="flex-1 bg-pink-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-pink-700 transition-colors"
+            >
+              View Products
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            >
+              Add Another
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-lg mx-auto bg-white shadow rounded-lg p-6">
-        <h1 className="text-2xl font-bold text-pink-600 mb-4 text-center">Add a New Product</h1>
-        <p className="text-center text-gray-500 mb-6">
-          Fill out the form below to add a new product to your store!
-        </p>
-        <ProductForm
-          mode="create"
-          onSubmit={handleCreate}
-          loading={loading}
-          error={error}
-        />
-        {loading && (
-          <div className="mt-6 flex flex-col items-center">
-            <svg className="animate-spin h-8 w-8 text-pink-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-300">
-              <div className="bg-pink-500 h-2.5 rounded-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
+    <div className="min-h-screen bg-pink-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link
+                to="/admin/products"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <ArrowLeftIcon className="h-5 w-5" />
+                <span className="font-medium">Back to Products</span>
+              </Link>
             </div>
-            <span className="mt-2 text-sm text-pink-600">{progress < 100 ? 'Uploading...' : 'Product created!'}</span>
+            <div className="text-right">
+              <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
+              <p className="text-sm text-gray-600">Expand your store catalog</p>
+            </div>
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Form Section */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              {/* Form Header */}
+              <div className="bg-pink-600 px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <PlusIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-white">Product Information</h2>
+                    <p className="text-pink-100 text-sm">Fill in the details below</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Content */}
+              <div className="p-6">
+                <ProductForm
+                  mode="create"
+                  onSubmit={handleCreate}
+                  loading={loading}
+                  error={error}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Progress Card */}
+            {loading && (
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Creating Product...</h3>
+                
+                {/* Progress Bar */}
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Progress</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-pink-500 h-3 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Progress Steps */}
+                <div className="space-y-3">
+                  <div className={`flex items-center gap-3 ${progress >= 25 ? 'text-green-600' : 'text-gray-400'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                      progress >= 25 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {progress >= 25 ? '✓' : '1'}
+                    </div>
+                    <span className="text-sm">Validating form</span>
+                  </div>
+                  
+                  <div className={`flex items-center gap-3 ${progress >= 50 ? 'text-green-600' : 'text-gray-400'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                      progress >= 50 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {progress >= 50 ? '✓' : '2'}
+                    </div>
+                    <span className="text-sm">Uploading image</span>
+                  </div>
+                  
+                  <div className={`flex items-center gap-3 ${progress >= 100 ? 'text-green-600' : 'text-gray-400'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                      progress >= 100 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {progress >= 100 ? '✓' : '3'}
+                    </div>
+                    <span className="text-sm">Saving product</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tips Card */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">💡 Tips for Great Products</h3>
+              <div className="space-y-3 text-sm text-gray-600">
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-pink-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Use clear, descriptive product names</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-pink-400 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Add detailed descriptions to help customers</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-pink-300 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Upload high-quality product images</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-pink-200 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Set accurate stock levels</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                <Link
+                  to="/admin/products"
+                  className="block w-full text-center bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                >
+                  View All Products
+                </Link>
+                <Link
+                  to="/admin"
+                  className="block w-full text-center bg-pink-100 text-pink-700 py-2 px-4 rounded-lg hover:bg-pink-200 transition-colors text-sm font-medium"
+                >
+                  Back to Dashboard
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

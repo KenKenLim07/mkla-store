@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useOrders } from '../hooks/useOrders'
-import { useProducts } from '../hooks/useProducts'
+import { useOrders, type OrderWithProduct } from '../hooks/useOrders'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
 import { Modal } from '../components/ui/Modal'
@@ -18,10 +17,9 @@ const statusFlow = ['pending', 'confirmed', 'completed', 'denied']
 export const AdminOrders = () => {
   // All hooks must be at the top level
   const { orders, loading, error, refetch } = useOrders()
-  const { products } = useProducts()
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [updateError, setUpdateError] = useState<string | null>(null)
-  const [localOrders, setLocalOrders] = useState(orders)
+  const [localOrders, setLocalOrders] = useState<OrderWithProduct[]>(orders)
   const [denialModalOpen, setDenialModalOpen] = useState(false)
   const [denialReason, setDenialReason] = useState('')
   const [pendingDenyOrder, setPendingDenyOrder] = useState<string | null>(null)
@@ -31,8 +29,6 @@ export const AdminOrders = () => {
   useEffect(() => {
     setLocalOrders(orders)
   }, [orders])
-
-  const getProduct = (id: string) => products.find(p => p.id === id)
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     // Prevent default form submission
@@ -81,158 +77,219 @@ export const AdminOrders = () => {
       // Only increment stock if going from non-denied to denied
       if (newStatus === 'denied' && prevStatus !== 'denied') {
         const productId = order?.product_id
-        if (productId) {
-          const product = products.find(p => p.id === productId)
-          if (product) {
-            await supabase.from('products').update({ stocks: product.stocks + 1 }).eq('id', productId)
-            setToast('Stock restored for denied order.')
-          }
+        if (productId && order?.product) {
+          await supabase.from('products').update({ stocks: order.product.stocks + 1 }).eq('id', productId)
+          setToast('Stock restored for denied order.')
         }
       }
       // Only decrement if going from denied to non-denied
       if (prevStatus === 'denied' && newStatus !== 'denied') {
         const productId = order?.product_id
-        if (productId) {
-          const product = products.find(p => p.id === productId)
-          if (product && product.stocks > 0) {
-            await supabase.from('products').update({ stocks: product.stocks - 1 }).eq('id', productId)
-          }
+        if (productId && order?.product && order.product.stocks > 0) {
+          await supabase.from('products').update({ stocks: order.product.stocks - 1 }).eq('id', productId)
         }
       }
     }
     setUpdatingId(null)
   }
 
-  // Use localOrders for rendering
-  const displayOrders = localOrders.length > 0 ? localOrders : orders
+  const handleDenialSubmit = async () => {
+    if (!pendingDenyOrder || !denialReason.trim()) return
+    
+    await updateOrderStatus(pendingDenyOrder, 'denied', undefined, denialReason.trim())
+    setDenialModalOpen(false)
+    setDenialReason('')
+    setPendingDenyOrder(null)
+  }
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      {/* Toast notification */}
-      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
-      {/* Denial reason modal */}
-      <Modal
-        open={denialModalOpen}
-        onClose={() => { setDenialModalOpen(false); setDenialReason(''); setPendingDenyOrder(null) }}
-        title="Reason for Denial"
-        actions={
-          <>
-            <button
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-              onClick={() => { setDenialModalOpen(false); setDenialReason(''); setPendingDenyOrder(null) }}
-            >Cancel</button>
-            <button
-              className="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700 disabled:opacity-50"
-              disabled={!denialReason.trim()}
-              onClick={async () => {
-                if (pendingDenyOrder) {
-                  await updateOrderStatus(pendingDenyOrder, 'denied', localOrders.find(o => o.id === pendingDenyOrder)?.status, denialReason)
-                  setDenialModalOpen(false)
-                  setDenialReason('')
-                  setPendingDenyOrder(null)
-                }
-              }}
-            >Deny Order</button>
-          </>
-        }
-      >
-        <textarea
-          className="w-full border rounded p-2 min-h-[80px] focus:border-pink-500 focus:ring-pink-500"
-          placeholder="Please provide a reason for denial..."
-          value={denialReason}
-          onChange={e => setDenialReason(e.target.value)}
-          autoFocus
-        />
-      </Modal>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
+  const handleDenialCancel = () => {
+    setDenialModalOpen(false)
+    setDenialReason('')
+    setPendingDenyOrder(null)
+    setUpdatingId(null)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-lg text-gray-600">Loading orders...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-lg shadow max-w-md w-full text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
+          <p className="text-gray-700 mb-4">{error}</p>
           <button
             onClick={refetch}
-            className="px-4 py-2 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 shadow"
+            className="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
           >
-            Refresh
+            Try Again
           </button>
         </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Manage Orders</h1>
+          <Link
+            to="/admin"
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+          >
+            Back to Dashboard
+          </Link>
+        </div>
+
         {updateError && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-            {updateError}
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700 text-sm">{updateError}</p>
           </div>
         )}
-        <div className="bg-white shadow rounded-lg overflow-x-auto">
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">Loading orders...</div>
-          ) : error ? (
-            <div className="p-8 text-center text-red-600">{error}</div>
-          ) : displayOrders.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">No orders yet.</div>
-          ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Buyer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Proof</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+
+        <div className="bg-white shadow-lg border-2 border-gray-300 rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <table className="min-w-full border-collapse">
+                          <thead className="bg-gray-50 border-b-2 border-gray-300">
+              <tr>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Order ID</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Product</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Buyer</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Payment Proof</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Current Status</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Date</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Change Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {localOrders.map((order, index) => (
+                <tr 
+                  key={order.id} 
+                  className={`${
+                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                  } hover:bg-blue-50 hover:shadow-sm transition-all duration-200 border-b border-gray-200 group`}
+                >
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-mono text-xs text-gray-600 border-r border-gray-200 bg-gray-50">{order.id}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap border-r border-gray-200">
+                    {order.product ? (
+                      <div className="flex items-center gap-2">
+                        {order.product.image_url && (
+                          <img src={order.product.image_url} alt={order.product.name} className="h-8 w-8 object-cover rounded" />
+                        )}
+                        <span className="text-sm font-medium text-gray-900">{order.product.name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">Unknown Product</span>
+                    )}
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap border-r border-gray-200">
+                    <span className="text-sm text-gray-900">{order.buyer_name}</span>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap border-r border-gray-200">
+                    {order.payment_proof_url ? (
+                      <a href={order.payment_proof_url} target="_blank" rel="noopener noreferrer" className="inline-block">
+                        <img src={order.payment_proof_url} alt="Proof" className="h-12 w-12 object-cover rounded border hover:scale-105 transition-transform" />
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">None</span>
+                    )}
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap border-r border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
+                        order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-200">
+                    {new Date(order.created_at || '').toLocaleDateString()}
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={order.status || 'pending'}
+                        onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                        disabled={updatingId === order.id}
+                        className="text-xs border-gray-300 rounded-md focus:ring-pink-500 focus:border-pink-500 disabled:opacity-50"
+                      >
+                        {statusFlow.map(status => (
+                          <option key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                      {updatingId === order.id && (
+                        <span className="text-pink-600 text-xs">Updating...</span>
+                      )}
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {displayOrders.map(order => {
-                  const product = getProduct(order.product_id || '')
-                  return (
-                    <tr key={order.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap font-mono text-xs text-gray-500">{order.id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {product ? (
-                          <div className="flex items-center gap-2">
-                            {product.image_url && (
-                              <img src={product.image_url} alt={product.name} className="h-8 w-8 object-cover rounded" />
-                            )}
-                            <span className="text-sm font-medium text-gray-900">{product.name}</span>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">Unknown</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">{order.buyer_name}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {order.payment_proof_url ? (
-                          <a href={order.payment_proof_url} target="_blank" rel="noopener noreferrer" className="inline-block">
-                            <img src={order.payment_proof_url} alt="Proof" className="h-12 w-12 object-cover rounded border hover:scale-105 transition-transform" />
-                          </a>
-                        ) : (
-                          <span className="text-gray-400">None</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-                          {order.status || 'pending'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <select
-                          value={order.status || 'pending'}
-                          onChange={e => handleStatusChange(order.id, e.target.value)}
-                          disabled={updatingId === order.id}
-                          className="px-2 py-1 rounded border border-gray-300 focus:border-pink-500 focus:ring-pink-500 text-sm bg-white shadow-sm"
-                        >
-                          {statusFlow.map(status => (
-                            <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
-                          ))}
-                        </select>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
+              ))}
+            </tbody>
+          </table>
+          </div>
         </div>
+
+        {localOrders.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📦</div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
+            <p className="text-gray-500">Orders will appear here once customers start placing them.</p>
+          </div>
+        )}
       </div>
+
+      {/* Denial Reason Modal */}
+      <Modal
+        open={denialModalOpen}
+        onClose={handleDenialCancel}
+        title="Deny Order"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">Please provide a reason for denying this order:</p>
+          <textarea
+            value={denialReason}
+            onChange={(e) => setDenialReason(e.target.value)}
+            placeholder="Enter denial reason..."
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-pink-500 focus:border-pink-500"
+            rows={3}
+          />
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={handleDenialCancel}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDenialSubmit}
+              disabled={!denialReason.trim()}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+            >
+              Deny Order
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   )
 } 

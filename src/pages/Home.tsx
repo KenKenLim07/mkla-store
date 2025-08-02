@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { ProductList } from '../components/product/ProductList'
 import { HeartIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
-import { Layout, SectionLayout } from '../components/ui/Layout'
+import { Layout } from '../components/ui/Layout'
 
 // Hero Section Component
 const HeroSection = () => {
@@ -32,7 +32,7 @@ const HeroSection = () => {
         </div>
         <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-6 leading-relaxed">
           I'm a 13-year-old aspiring entrepreneur passionate about helping everyone find the perfect items! 
-          Welcome to my little store where I curate adorable and quality products just for you.
+          Welcome to my little store where I curate adorable and quality products for everyone.
         </p>
         <div className="flex flex-row gap-3 justify-center items-center">
           <button
@@ -64,21 +64,21 @@ const TestimonialsSection = () => {
     {
       name: 'Sarah M.',
       role: 'Student',
-      content: 'Love the quality of the school supplies! The pens write so smoothly and the notebooks are adorable.',
+      content: 'Love the quality of everything! The items are so cute and well-made. Perfect for my needs!',
       rating: 5,
       avatar: '👩‍🎓'
     },
     {
       name: 'Mike R.',
       role: 'Parent',
-      content: 'Great prices and fast delivery. My daughter loves all the cute accessories she got from here.',
+      content: 'Great prices and adorable items! My daughter loves all the cute accessories she got from here.',
       rating: 5,
       avatar: '👨‍👧'
     },
     {
       name: 'Emma L.',
       role: 'Artist',
-      content: 'The art supplies are amazing quality! Perfect for my creative projects. Highly recommend!',
+      content: 'The quality is amazing! Perfect for my creative projects and daily use. Highly recommend!',
       rating: 5,
       avatar: '👩‍🎨'
     }
@@ -131,8 +131,8 @@ const Footer = () => (
             <h3 className="text-2xl font-bold text-pink-400">MKLA Creations</h3>
           </div>
           <p className="text-gray-300 mb-4 max-w-md">
-            Your one-stop shop for adorable school supplies and fun finds. 
-            Making learning and creating more enjoyable for everyone!
+            Your one-stop shop for adorable items and fun finds. 
+            Making life more enjoyable and colorful for everyone!
           </p>
           <div className="flex space-x-4">
             <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors">
@@ -212,7 +212,7 @@ export const Home = () => {
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Featured Products</h2>
             <p className="text-sm text-gray-600 max-w-lg mx-auto">
-              I carefully select each item myself! From trending favorites to hidden gems, discover products that make learning and creating more fun.
+              I carefully select each item myself! From trending favorites to hidden gems, discover products that make life more fun and colorful.
             </p>
           </div>
           <ProductList />

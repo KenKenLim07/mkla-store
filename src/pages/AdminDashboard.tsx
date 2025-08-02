@@ -1,11 +1,9 @@
 import { useProducts } from '../hooks/useProducts'
 import { useOrders } from '../hooks/useOrders'
-import { useAuth } from '../hooks/useAuth'
 import { Link } from 'react-router-dom'
 import { PlusIcon, ShoppingBagIcon, CurrencyDollarIcon, UserGroupIcon, PencilIcon, EyeIcon } from '@heroicons/react/24/outline'
 
 export const AdminDashboard = () => {
-  const { user } = useAuth()
   const { products, loading: productsLoading } = useProducts()
   const { orders, loading: ordersLoading } = useOrders()
 
@@ -65,26 +63,26 @@ export const AdminDashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           {stats.map((stat) => (
             <div key={stat.name} className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5 flex items-center gap-4">
+              <div className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
                 <div className={`flex-shrink-0 ${stat.color} rounded-md p-2 flex items-center justify-center`}>
-                  <stat.icon className="h-7 w-7 text-white" />
+                  <stat.icon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
                 </div>
                 <div className="w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
                       {stat.name}
                     </dt>
-                    <dd className="text-2xl font-bold text-gray-900">
+                    <dd className="text-xl sm:text-2xl font-bold text-gray-900">
                       {stat.value}
                     </dd>
                   </dl>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
-                <div className="text-sm">
+              <div className="bg-gray-50 px-4 sm:px-5 py-3">
+                <div className="text-xs sm:text-sm">
                   <Link
                     to={stat.href}
                     className="font-medium text-blue-700 hover:text-blue-900"
@@ -100,22 +98,22 @@ export const AdminDashboard = () => {
         {/* Quick Actions */}
         <div className="bg-white shadow rounded-lg p-6 mb-8">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
-          <div className="flex gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <Link
               to="/admin/products/new"
-              className="inline-flex items-center px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700 transition font-medium"
+              className="inline-flex items-center justify-center px-4 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium text-sm"
             >
               <PlusIcon className="h-5 w-5 mr-2" /> Add New Product
             </Link>
             <Link
               to="/admin/products"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition font-medium"
+              className="inline-flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
             >
               <PencilIcon className="h-5 w-5 mr-2" /> Manage Products
             </Link>
             <Link
               to="/admin/orders"
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition font-medium"
+              className="inline-flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
             >
               <EyeIcon className="h-5 w-5 mr-2" /> View Orders
             </Link>

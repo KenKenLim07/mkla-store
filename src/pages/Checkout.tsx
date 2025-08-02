@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import type { Product } from '../types/db'
 import { useAuth } from '../hooks/useAuth'
 import { ArrowLeftIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { compressImage, ImageCompressor } from '../utils/imageCompression'
 
 export const Checkout = () => {
   const [searchParams] = useSearchParams()
@@ -13,6 +14,12 @@ export const Checkout = () => {
   const [buyerName, setBuyerName] = useState('')
   const [proof, setProof] = useState<File | null>(null)
   const [proofPreview, setProofPreview] = useState<string | null>(null)
+  const [compressionInfo, setCompressionInfo] = useState<{
+    originalSize: string
+    compressedSize: string
+    compressionRatio: number
+    isCompressing: boolean
+  } | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [progress, setProgress] = useState(0)
   const [success, setSuccess] = useState(false)
@@ -46,15 +53,64 @@ export const Checkout = () => {
     fetchProduct()
   }, [productId])
 
-  const handleProofChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProofChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
-    setProof(file)
-    if (file) {
+    
+    if (!file) {
+      setProof(null)
+      setProofPreview(null)
+      setCompressionInfo(null)
+      return
+    }
+
+    // Validate file
+    const validation = ImageCompressor.validateFile(file)
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file')
+      setProof(null)
+      setProofPreview(null)
+      setCompressionInfo(null)
+      return
+    }
+
+    setError(null)
+    setCompressionInfo({ 
+      originalSize: ImageCompressor.formatFileSize(file.size),
+      compressedSize: '',
+      compressionRatio: 1,
+      isCompressing: true 
+    })
+
+    try {
+      // Compress image
+      const compressed = await compressImage(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.8,
+        maxFileSize: 500 * 1024 // 500KB
+      })
+
+      // Update proof with compressed file
+      setProof(compressed.file)
+      
+      // Update compression info
+      setCompressionInfo({
+        originalSize: ImageCompressor.formatFileSize(compressed.originalSize),
+        compressedSize: ImageCompressor.formatFileSize(compressed.compressedSize),
+        compressionRatio: compressed.compressionRatio,
+        isCompressing: false
+      })
+
+      // Create preview
       const reader = new FileReader()
       reader.onloadend = () => setProofPreview(reader.result as string)
-      reader.readAsDataURL(file)
-    } else {
+      reader.readAsDataURL(compressed.file)
+
+    } catch (error) {
+      setError('Failed to process image. Please try again.')
+      setProof(null)
       setProofPreview(null)
+      setCompressionInfo(null)
     }
   }
 
@@ -82,7 +138,7 @@ export const Checkout = () => {
       const fileExt = proof.name.split('.').pop()
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`
       const filePath = `orders/${fileName}`
-      const { data, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('payment-proofs')
         .upload(filePath, proof, {
           cacheControl: '3600',
@@ -364,6 +420,28 @@ export const Checkout = () => {
                   </div>
                 </div>
 
+                {/* Compression Info */}
+                {compressionInfo && (
+                  <div className="text-xs text-gray-600 space-y-1 bg-gray-50 p-3 rounded-lg border">
+                    {compressionInfo.isCompressing ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-pink-500"></div>
+                        <span>Optimizing image...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div>Original: {compressionInfo.originalSize}</div>
+                        <div>Optimized: {compressionInfo.compressedSize}</div>
+                        {compressionInfo.compressionRatio < 1 && (
+                          <div className="text-green-600">
+                            Saved {((1 - compressionInfo.compressionRatio) * 100).toFixed(1)}% space
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+
                 {/* Preview */}
                 {proofPreview && (
                   <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 animate-fade-in">
@@ -374,6 +452,7 @@ export const Checkout = () => {
                         onClick={() => {
                           setProof(null)
                           setProofPreview(null)
+                          setCompressionInfo(null)
                           if (fileInputRef.current) fileInputRef.current.value = ''
                         }}
                         className="text-xs text-red-600 hover:text-red-800 transition-colors"
@@ -404,7 +483,7 @@ export const Checkout = () => {
             <div className="flex gap-3">
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || compressionInfo?.isCompressing}
                 className="flex-1 bg-pink-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (

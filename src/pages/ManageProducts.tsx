@@ -170,80 +170,82 @@ export const ManageProducts = () => {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <table className="min-w-full border-collapse">
+                <thead className="bg-gray-50 border-b-2 border-gray-300">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                       Product
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                       Price
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stocks</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Stocks</th>
+                    <th className="px-3 sm:px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                <tbody className="bg-white">
+                  {filteredProducts.map((product, index) => (
+                    <tr key={product.id} className={`${
+                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                    } hover:bg-blue-50 hover:shadow-sm transition-all duration-200 border-b border-gray-200 group`}>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap border-r border-gray-200">
                         <div className="flex items-center">
                           {product.image_url && (
                             <img
-                              className="h-10 w-10 rounded-lg object-cover mr-4"
+                              className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover mr-2 sm:mr-4"
                               src={product.image_url}
                               alt={product.name}
                             />
                           )}
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-medium text-gray-900 truncate">
                               {product.name}
                             </div>
                             {product.description && (
-                              <div className="text-sm text-gray-500 truncate max-w-xs">
+                              <div className="text-xs sm:text-sm text-gray-500 truncate max-w-xs">
                                 {product.description}
                               </div>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                         ₱{product.price.toFixed(2)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap border-r border-gray-200">
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                           Active
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                         {editingStockId === product.id ? (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 sm:gap-2">
                             <input
                               type="number"
                               min={0}
                               value={stockInput ?? ''}
                               onChange={e => setStockInput(Number(e.target.value))}
-                              className="w-20 px-2 py-1 border rounded focus:border-pink-500 focus:ring-pink-500 text-sm"
+                              className="w-16 sm:w-20 px-2 py-1 border rounded focus:border-pink-500 focus:ring-pink-500 text-xs sm:text-sm"
                               disabled={updatingStockId === product.id}
                             />
                             <button
                               onClick={() => handleStockSave(product)}
                               disabled={updatingStockId === product.id}
-                              className="px-2 py-1 bg-pink-600 text-white rounded text-xs font-semibold hover:bg-pink-700 disabled:opacity-50"
+                              className="px-1.5 sm:px-2 py-1 bg-pink-600 text-white rounded text-xs font-semibold hover:bg-pink-700 disabled:opacity-50"
                             >
                               {updatingStockId === product.id ? (
-                                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <svg className="animate-spin h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                               ) : 'Save'}
                             </button>
                             <button
                               onClick={() => setEditingStockId(null)}
-                              className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-semibold hover:bg-gray-300"
+                              className="px-1.5 sm:px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-semibold hover:bg-gray-300"
                               disabled={updatingStockId === product.id}
                             >Cancel</button>
                           </div>
@@ -258,32 +260,32 @@ export const ManageProducts = () => {
                           <div className="text-xs text-red-500 mt-1">{stockError}</div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-2">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-1 sm:space-x-2">
                           <Link
                             to={`/admin/products/edit/${product.id}`}
-                            className="text-blue-600 hover:text-blue-900 p-1"
+                            className="text-blue-600 hover:text-blue-900 p-1.5 sm:p-1"
                             title="Edit product"
                           >
                             <PencilIcon className="h-4 w-4" />
                           </Link>
                           <button
                             onClick={() => handleStockEdit(product)}
-                            className="text-yellow-600 hover:text-yellow-900 p-1"
+                            className="text-yellow-600 hover:text-yellow-900 p-1.5 sm:p-1"
                             title="Edit stocks"
                           >
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13h6m2 2a2 2 0 11-4 0 2 2 0 014 0zm-6 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                           </button>
                           <Link
                             to={`/product/${product.id}`}
-                            className="text-gray-600 hover:text-gray-900 p-1"
+                            className="text-gray-600 hover:text-gray-900 p-1.5 sm:p-1"
                             title="View product"
                           >
                             <EyeIcon className="h-4 w-4" />
                           </Link>
                           <button
                             onClick={() => setDeleteProductId(product.id)}
-                            className="text-red-600 hover:text-red-900 p-1"
+                            className="text-red-600 hover:text-red-900 p-1.5 sm:p-1"
                             title="Delete product"
                           >
                             <TrashIcon className="h-4 w-4" />
