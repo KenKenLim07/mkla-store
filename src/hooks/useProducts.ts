@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import type { Product, SupabaseResponse } from '../types/db'
+import { logger } from '../utils/logger'
 
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([])
@@ -24,14 +25,14 @@ export const useProducts = () => {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching products:', error)
+        logger.apiError('products', error)
         setError(error.message)
         return
       }
 
       setProducts(data || [])
     } catch (err) {
-      console.error('Unexpected error:', err)
+      logger.error('Failed to fetch products', err as Error)
       setError('Failed to fetch products')
     } finally {
       setLoading(false)

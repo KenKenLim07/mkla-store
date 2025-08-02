@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import type { AuthUser } from '../types/db'
+import { logger } from '../utils/logger'
 
 export const useAuth = () => {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -15,7 +16,7 @@ export const useAuth = () => {
         const { data: { session }, error } = await supabase.auth.getSession()
         
         if (error) {
-          console.error('Error getting session:', error)
+          logger.authError('getSession', error)
           setError(error.message)
           return
         }
@@ -36,7 +37,7 @@ export const useAuth = () => {
           }
         }
       } catch (err) {
-        console.error('Unexpected error:', err)
+        logger.error('Unexpected error during auth initialization', err as Error)
         setError('Failed to get session')
       } finally {
         setLoading(false)
@@ -79,7 +80,7 @@ export const useAuth = () => {
         .single()
 
       if (error) {
-        console.error('Error fetching profile:', error)
+        logger.apiError('profiles', error, { userId })
         // Don't set error here - user can still use the app with basic info
         return
       }
@@ -93,7 +94,7 @@ export const useAuth = () => {
         } : null)
       }
     } catch (err) {
-      console.error('Unexpected error fetching profile:', err)
+      logger.error('Unexpected error fetching profile', err as Error, { userId })
     } finally {
       isProfileFetching.current = false
     }

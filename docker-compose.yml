@@ -1,0 +1,47 @@
+# Docker Compose for Mikela Store
+version: '3.8'
+
+services:
+  # Production web server
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mikela-store.rule=Host(`your-domain.com`)"
+      - "traefik.http.routers.mikela-store.entrypoints=websecure"
+      - "traefik.http.routers.mikela-store.tls.certresolver=letsencrypt"
+
+  # Development server (override for local development)
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+    profiles:
+      - dev
+
+networks:
+  default:
+    name: mikela-store-network
