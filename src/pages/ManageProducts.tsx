@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useProducts } from '../hooks/useProducts'
-import { useAuth } from '../hooks/useAuth'
 import { PlusIcon, PencilIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline'
 import type { Product } from '../types/db'
 import { supabase } from '../lib/supabase'
 
 export const ManageProducts = () => {
-  const { user } = useAuth()
   const { products, loading, refetch } = useProducts()
   const [searchTerm, setSearchTerm] = useState('')
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null)

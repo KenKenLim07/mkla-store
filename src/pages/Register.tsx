@@ -106,7 +106,7 @@ export const Register = () => {
     setLoading(true)
     setErrors({})
     try {
-      const { data, error } = await signUp({
+      const { error } = await signUp({
         email: formData.email,
         password: formData.password,
         fullName: formData.fullName
