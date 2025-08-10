@@ -13,7 +13,7 @@ export default function Page() {
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, profileLoaded } = useAuth()
   const router = useRouter()
 
   const handleCreate = async (form: { name: string; description: string; price: string; image?: File | null; stocks?: number }) => {
@@ -27,7 +27,7 @@ export default function Page() {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`
       const filePath = `products/${fileName}`
 
-      const { error: uploadError } = await supabase.storage.from('product-images').upload(filePath, form.image, { cacheControl: '3600', upsert: false } as { cacheControl: string; upsert: boolean })
+      const { error: uploadError } = await supabase.storage.from('product-images').upload(filePath, form.image, { cacheControl: '3600', upsert: false, contentType: form.image.type } as { cacheControl: string; upsert: boolean; contentType: string })
       if (uploadError) { setError('Failed to upload image: ' + uploadError.message); setLoading(false); return }
       image_url = supabase.storage.from('product-images').getPublicUrl(filePath).data.publicUrl
       setProgress(50)
@@ -41,8 +41,9 @@ export default function Page() {
     setTimeout(() => { setLoading(false); router.push('/admin/products') }, 1500)
   }
 
-  if (authLoading) return null
-  if (!user || user.role !== 'admin') { router.replace('/'); return null }
+  if (authLoading || !profileLoaded) return null
+  if (!user) { router.replace('/login'); return null }
+  if (user.role !== 'admin') { router.replace('/'); return null }
 
   if (success) {
     return (
