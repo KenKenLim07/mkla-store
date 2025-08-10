@@ -144,7 +144,7 @@ export default function Page() {
                         <div className="flex items-center justify-end space-x-1 sm:space-x-2">
                           <Link href={`/admin/products/edit/${product.id}`} className="text-blue-600 hover:text-blue-900 p-1.5 sm:p-1" title="Edit product"><PencilIcon className="h-4 w-4" /></Link>
                           <button onClick={() => handleStockEdit(product)} className="text-yellow-600 hover:text-yellow-900 p-1.5 sm:p-1" title="Edit stocks"><svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13h6m2 2a2 2 0 11-4 0 2 2 0 014 0zm-6 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg></button>
-                          <Link href={`/product/${product.id}`} className="text-gray-600 hover:text-gray-900 p-1.5 sm:p-1" title="View product"><EyeIcon className="h-4 w-4" /></Link>
+                          <Link href={`/products/${product.id}`} className="text-gray-600 hover:text-gray-900 p-1.5 sm:p-1" title="View product"><EyeIcon className="h-4 w-4" /></Link>
                           <button onClick={() => setDeleteProductId(product.id)} className="text-red-600 hover:text-red-900 p-1.5 sm:p-1" title="Delete product"><TrashIcon className="h-4 w-4" /></button>
                         </div>
                       </td>

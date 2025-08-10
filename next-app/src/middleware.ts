@@ -22,20 +22,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  if (isAdminRoute && session) {
-    // Fetch user profile to check role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single()
 
-    if (profile?.role !== 'admin') {
-      const homeUrl = req.nextUrl.clone()
-      homeUrl.pathname = '/'
-      return NextResponse.redirect(homeUrl)
-    }
-  }
 
   return res
 }
