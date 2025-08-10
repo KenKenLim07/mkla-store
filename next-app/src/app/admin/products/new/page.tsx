@@ -41,7 +41,37 @@ export default function Page() {
     setTimeout(() => { setLoading(false); router.push('/admin/products') }, 1500)
   }
 
-  if (authLoading || !profileLoaded) return null
+  if (authLoading || !profileLoaded) {
+    return (
+      <div className="min-h-screen bg-pink-50">
+        <div className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-4xl mx-auto px-4 py-6">
+            <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                <div className="h-5 w-40 bg-gray-200 rounded mb-4 animate-pulse" />
+                <div className="space-y-3">
+                  <div className="h-10 bg-gray-100 rounded animate-pulse" />
+                  <div className="h-24 bg-gray-100 rounded animate-pulse" />
+                  <div className="h-10 bg-gray-100 rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                <div className="h-5 w-32 bg-gray-200 rounded mb-4 animate-pulse" />
+                <div className="h-24 bg-gray-100 rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
   if (!user) { router.replace('/login'); return null }
   if (user.role !== 'admin') { router.replace('/'); return null }
 
