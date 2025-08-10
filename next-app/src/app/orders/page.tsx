@@ -49,7 +49,7 @@ function PaymentProofModal({ open, onClose, imageUrl }: { open: boolean, onClose
 
 export default function Page() {
   const { user, loading: authLoading } = useAuth()
-  const { orders, loading, error } = useOrders()
+  const { orders, loading, error } = useOrders({ onlyMine: true })
   const [userOrders, setUserOrders] = useState<OrderWithProduct[]>([])
   const [proofModal, setProofModal] = useState<{ open: boolean, url: string }>({ open: false, url: '' })
   const [copiedId, setCopiedId] = useState<string | null>(null)

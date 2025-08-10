@@ -22,19 +22,32 @@ export interface OrderWithProduct {
   } | null
 }
 
-export const useOrders = () => {
+export const useOrders = (options?: { onlyMine?: boolean }) => {
   const [orders, setOrders] = useState<OrderWithProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const onlyMine = options?.onlyMine ?? false
 
   const fetchOrders = async () => {
     setLoading(true)
     setError(null)
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('orders')
         .select(`*, product:products(id, name, description, price, image_url, stocks)`) 
         .order('created_at', { ascending: false })
+
+      if (onlyMine) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          setOrders([])
+          setLoading(false)
+          return
+        }
+        query = query.eq('user_id', user.id)
+      }
+
+      const { data, error } = await query
       if (error) {
         setError(error.message)
         setOrders([])
@@ -49,7 +62,7 @@ export const useOrders = () => {
     }
   }
 
-  useEffect(() => { fetchOrders() }, [])
+  useEffect(() => { fetchOrders() }, [onlyMine])
 
   return { orders, loading, error, refetch: fetchOrders }
 } 
